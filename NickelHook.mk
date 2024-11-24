@@ -260,7 +260,7 @@ all: Makefile src res $(NHSOURCE)
 
 Makefile:
 	$(call nh_create)
-	$(call nh_write,include $(NM_DIR)/$(nh_dir)NickelHook.mk)
+	$(call nh_write,include $(nh_dir)NickelHook.mk)
 	$(call nh_write,)
 	$(call nh_write,override LIBRARY  := $(LIBRARY))
 	$(call nh_write,override SOURCES  += $(NHSOURCE) $(sort $(filter-out $(NHSOURCE), $(PLUGIN_SOURCES))))
@@ -283,7 +283,7 @@ Makefile:
 	$(call nh_write,debug: all)
 
 	$(call nh_write,)
-	$(call nh_write,include $(NM_DIR)/$(nh_dir)NickelHook.mk)
+	$(call nh_write,include $(nh_dir)NickelHook.mk)
 
 src:
 	$(call nh_mkdir)
