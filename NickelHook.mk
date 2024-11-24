@@ -80,6 +80,8 @@ ONBOARD_DIR ?= /mnt/onboard
 PLUGIN_DIR	?= $(ONBOARD_DIR)/.adds
 override KOBOROOT += $(LIBRARY):$(PLUGIN_DIR)/$(notdir $(LIBRARY))
 
+KOBO_PACKAGE := KoboRoot.tgz
+
 ## generated files
 # override GENERATED += <file>
 override OBJECTS_C    := $(filter %.o,$(SOURCES:%.c=%.o))
@@ -87,7 +89,7 @@ override OBJECTS_CXX  := $(filter %.o,$(SOURCES:%.cc=%.o))
 override OBJECTS_CXX1 := $(filter %.o,$(SOURCES:%.cpp=%.o))
 override MOCS_MOC     := $(filter %.moc,$(MOCS:%.h=%.moc))
 override OBJECTS_MOC  := $(MOCS_MOC:%=%.o)
-override GENERATED    += KoboRoot.tgz $(LIBRARY) $(OBJECTS_C) $(OBJECTS_CXX) $(OBJECTS_CXX1) $(MOCS_MOC) $(OBJECTS_MOC)
+override GENERATED    += $(KOBO_PACKAGE) $(LIBRARY) $(OBJECTS_C) $(OBJECTS_CXX) $(OBJECTS_CXX1) $(MOCS_MOC) $(OBJECTS_MOC)
 
 ## gitignore
 # override GITIGNORE += <pattern>
@@ -173,7 +175,7 @@ endef
 $(eval $(call nh_install,$(KOBOROOT)))
 
 koboroot:
-	tar cvzf KoboRoot.tgz --show-transformed --owner=root --group=root --mode="u=rwX,go=rX" $(foreach file,$(KOBOROOT),--transform="s,$(word 1,$(subst :, ,$(file))),.$(word 2,$(subst :, ,$(file))),") $(foreach file,$(KOBOROOT),$(word 1,$(subst :, ,$(file))))
+	tar cvzf $(KOBO_PACKAGE) --show-transformed --owner=root --group=root --mode="u=rwX,go=rX" $(foreach file,$(KOBOROOT),--transform="s,$(word 1,$(subst :, ,$(file))),.$(word 2,$(subst :, ,$(file))),") $(foreach file,$(KOBOROOT),$(word 1,$(subst :, ,$(file))))
 
 .PHONY: all clean gitignore install koboroot
 
@@ -279,12 +281,14 @@ Makefile:
 	$(call nh_write,uninstall-file:)
 	$(call nh_write,	echo "$(VERSION)" > $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,)
-	$(call nh_write,all: uninstall-file)
+	$(call nh_write,nickel-menu:)
+	$(call nh_write,	$(MAKE) -C $(NM_DIR) all)
+	$(call nh_write,)
+	$(call nh_write,all: uninstall-file nickel-menu)
 	$(call nh_write,)
 	$(call nh_write,debug: CFLAGS += -DDEBUG)
 	$(call nh_write,debug: CXXFLAGS += -DDEBUG)
 	$(call nh_write,debug: all)
-
 	$(call nh_write,)
 	$(call nh_write,include $(nh_dir)NickelHook.mk)
 
