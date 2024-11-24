@@ -76,7 +76,9 @@ override MOCS += $(NICKELHOOK)nhplugin.h
 
 ## variable: installed files
 # override KOBOROOT += <source>:<dest>
-override KOBOROOT += $(LIBRARY):/usr/local/Kobo/imageformats/$(notdir $(LIBRARY))
+ONBOARD_DIR ?= /mnt/onboard
+PLUGIN_DIR	?= $(ONBOARD_DIR)/.adds
+override KOBOROOT += $(LIBRARY):$(PLUGIN_DIR)/$(notdir $(LIBRARY))
 
 ## generated files
 # override GENERATED += <file>
@@ -231,10 +233,6 @@ override nh_namel := $(shell echo "$(nh_names)" | tr '[:upper:]' '[:lower:]')
 
 $(if $(nh_namet),,$(error NAME must contain at least one uppercase letter, preferably more to be unique))
 
-ONBOARD_DIR ?= /mnt/onboard
-PLUGIN_DIR	?= /mnt/onboard/.adds
-override NM_CONFIG_DIR := $(PLUGIN_DIR)/nm
-
 PLUGIN_UNINSTALL_FILE	?= res/$(NAME)_version
 
 SRC_DIR         ?= src
@@ -264,11 +262,9 @@ Makefile:
 	$(call nh_write,)
 	$(call nh_write,override LIBRARY  := $(LIBRARY))
 	$(call nh_write,override SOURCES  += $(NHSOURCE) $(sort $(filter-out $(NHSOURCE), $(PLUGIN_SOURCES))))
-	$(call nh_write,override SOURCES  += $(sort $(NM_SOURCES)))
 	$(call nh_write,override CFLAGS   += -Wall -Wextra -Werror)
 	$(call nh_write,override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers)
 	$(call nh_write,override PKGCONF  += Qt5Widgets)
-	$(call nh_write,override NM_CONFIG_DIR := $(NM_CONFIG_DIR))
 	$(call nh_write,override UNINSTALL_FILE += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override GENERATED      += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override KOBOROOT       += $(PLUGIN_UNINSTALL_FILE):$(PLUGIN_DIR)/$(NAME))
