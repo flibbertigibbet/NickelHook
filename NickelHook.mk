@@ -233,15 +233,21 @@ override nh_namel := $(shell echo "$(nh_names)" | tr '[:upper:]' '[:lower:]')
 
 $(if $(nh_namet),,$(error NAME must contain at least one uppercase letter, preferably more to be unique))
 
-PLUGIN_UNINSTALL_FILE	?= res/$(NAME)_version
+ONBOARD_DIR := /mnt/onboard
+PLUGIN_DIR	:= $(ONBOARD_DIR)/.adds
 
 SRC_DIR         ?= src
-NM_DIR			?=NickelMenu
+NM_DIR			?= NickelMenu
+NM_LIBRARY		?= libnm.so
+RES_DIR			?= res
 NM_SRC_DIR 	    ?= $(NM_DIR)/$(SRC_DIR)
 LIBRARY         ?= lib$(nh_namel).so
 NHSOURCE        ?= $(SRC_DIR)/$(nh_namel).cc
+PLUGIN_CONFIG   ?= $(RES_DIR)/$(nh_namel)_config
 PLUGIN_SOURCES  ?= $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc)
 NM_SOURCES      ?= $(wildcard $(NM_SRC_DIR)/*.c $(NM_SRC_DIR)/*.cc)
+
+PLUGIN_UNINSTALL_FILE	?= $(RES_DIR)/$(nh_namel)_version
 
 override nh_dir    := $(dir $(lastword $(MAKEFILE_LIST)))
 override nh_mkdir   = @echo "$@"; mkdir $@
@@ -251,7 +257,7 @@ override nh_write   = @echo "| $(subst ",\",$(1))"; echo "$(subst ",\",$(1))" >>
 $(if $(wildcard $(NHSOURCE)),$(info Warning: File named $(NHSOURCE) found in src dir, not generating NickelHook base.))
 $(if $(wildcard Makefile),$(info Warning: Makefile already exists, not generating.))
 
-all: Makefile src res $(NHSOURCE)
+all: Makefile $(SRC_DIR) $(RES_DIR) $(NHSOURCE) $(PLUGIN_CONFIG)
 	@echo "Finishing up."
 	$(MAKE) gitignore
 .PHONY: all
@@ -268,7 +274,8 @@ Makefile:
 	$(call nh_write,override UNINSTALL_FILE += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override GENERATED      += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override KOBOROOT       += $(PLUGIN_UNINSTALL_FILE):$(PLUGIN_DIR)/$(NAME))
-	$(call nh_write,override KOBOROOT       += $(LIBRARY):$(PLUGIN_DIR)/$(notdir $(LIBRARY)))
+	$(call nh_write,override KOBOROOT 		+= $(PLUGIN_CONFIG):$(NM_CONFIG_DIR)/$(PLUGIN_CONFIG))
+	$(call nh_write,override KOBOROOT 		+= $(NM_SRC_DIR)/$(NM_LIBRARY):$(PLUGIN_DIR)/$(NM_LIBRARY))
 	$(call nh_write,uninstall-file:)
 	$(call nh_write,	echo "$(VERSION)" > $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,)
@@ -281,13 +288,13 @@ Makefile:
 	$(call nh_write,)
 	$(call nh_write,include $(nh_dir)NickelHook.mk)
 
-src:
+$(SRC_DIR):
 	$(call nh_mkdir)
 
-res:
+$(RES_DIR):
 	$(call nh_mkdir)
 
-$(NHSOURCE): src
+$(NHSOURCE): $(SRC_DIR)
 	$(call nh_create)
 	$(call nh_write,#include <cstddef>)
 	$(call nh_write,#include <cstdlib>)
@@ -314,4 +321,8 @@ $(NHSOURCE): src
 	$(call nh_write,    .hook  = $(nh_names)Hook$(nh_comma))
 	$(call nh_write,    .dlsym = $(nh_names)Dlsym$(nh_comma))
 	$(call nh_write,$(nh_parr))
+
+$(PLUGIN_CONFIG): $(RES_DIR)
+	$(call nh_create)
+	$(call nh_write,# menu_item :main    :> $(NAME)    :nm_gui_plugin      :$(PLUGIN_DIR)/$(notdir $(LIBRARY)))
 endif
