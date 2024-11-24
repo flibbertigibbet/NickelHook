@@ -233,14 +233,17 @@ $(if $(nh_namet),,$(error NAME must contain at least one uppercase letter, prefe
 
 ONBOARD_DIR ?= /mnt/onboard
 PLUGIN_DIR	?= /mnt/onboard/.adds
+override NM_CONFIG_DIR := $(PLUGIN_DIR)/nm
 
 PLUGIN_UNINSTALL_FILE	?= res/$(NAME)_version
 
-SRC_DIR  ?= src
-NM_DIR 	 ?= NickelMenu/$(SRC_DIR)
-LIBRARY  ?= lib$(nh_namel).so
-NHSOURCE ?= $(SRC_DIR)/$(nh_namel).cc
-SOURCES  ?= $(wildcard $(NM_DIR)/*.c $(NM_DIR)/*.cc $(SRC_DIR)/*.c $(SRC_DIR)/*.cc)
+SRC_DIR         ?= src
+NM_DIR			?=NickelMenu
+NM_SRC_DIR 	    ?= $(NM_DIR)/$(SRC_DIR)
+LIBRARY         ?= lib$(nh_namel).so
+NHSOURCE        ?= $(SRC_DIR)/$(nh_namel).cc
+PLUGIN_SOURCES  ?= $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc)
+NM_SOURCES      ?= $(wildcard $(NM_SRC_DIR)/*.c $(NM_SRC_DIR)/*.cc)
 
 override nh_dir    := $(dir $(lastword $(MAKEFILE_LIST)))
 override nh_mkdir   = @echo "$@"; mkdir $@
@@ -250,19 +253,22 @@ override nh_write   = @echo "| $(subst ",\",$(1))"; echo "$(subst ",\",$(1))" >>
 $(if $(wildcard $(NHSOURCE)),$(info Warning: File named $(NHSOURCE) found in src dir, not generating NickelHook base.))
 $(if $(wildcard Makefile),$(info Warning: Makefile already exists, not generating.))
 
-all: Makefile src $(NHSOURCE)
+all: Makefile src res $(NHSOURCE)
 	@echo "Finishing up."
 	$(MAKE) gitignore
 .PHONY: all
 
 Makefile:
 	$(call nh_create)
-	$(call nh_write,include $(nh_dir)NickelHook.mk)
+	$(call nh_write,include $(NM_DIR)/$(nh_dir)NickelHook.mk)
 	$(call nh_write,)
 	$(call nh_write,override LIBRARY  := $(LIBRARY))
-	$(call nh_write,override SOURCES  += $(NHSOURCE) $(sort $(filter-out $(NHSOURCE), $(SOURCES))))
+	$(call nh_write,override SOURCES  += $(NHSOURCE) $(sort $(filter-out $(NHSOURCE), $(PLUGIN_SOURCES))))
+	$(call nh_write,override SOURCES  += $(sort $(NM_SOURCES)))
 	$(call nh_write,override CFLAGS   += -Wall -Wextra -Werror)
 	$(call nh_write,override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers)
+	$(call nh_write,override PKGCONF  += Qt5Widgets)
+	$(call nh_write,override NM_CONFIG_DIR := $(NM_CONFIG_DIR))
 	$(call nh_write,override UNINSTALL_FILE += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override GENERATED      += $(PLUGIN_UNINSTALL_FILE))
 	$(call nh_write,override KOBOROOT       += $(PLUGIN_UNINSTALL_FILE):$(PLUGIN_DIR)/$(NAME))
@@ -277,7 +283,7 @@ Makefile:
 	$(call nh_write,debug: all)
 
 	$(call nh_write,)
-	$(call nh_write,include $(nh_dir)NickelHook.mk)
+	$(call nh_write,include $(NM_DIR)/$(nh_dir)NickelHook.mk)
 
 src:
 	$(call nh_mkdir)
