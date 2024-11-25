@@ -76,9 +76,7 @@ override MOCS += $(NICKELHOOK)nhplugin.h
 
 ## variable: installed files
 # override KOBOROOT += <source>:<dest>
-ONBOARD_DIR ?= /mnt/onboard
-PLUGIN_DIR	?= $(ONBOARD_DIR)/.adds
-override KOBOROOT += $(LIBRARY):$(PLUGIN_DIR)/$(notdir $(LIBRARY))
+override KOBOROOT += $(LIBRARY):/usr/local/Kobo/imageformats/$(notdir $(LIBRARY))
 
 KOBO_PACKAGE := KoboRoot.tgz
 
